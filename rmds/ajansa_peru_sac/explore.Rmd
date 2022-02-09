@@ -1,0 +1,14 @@
+---
+title: "explore"
+output: html_notebook
+---
+
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+```
+
+
