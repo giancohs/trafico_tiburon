@@ -1,6 +1,9 @@
 ---
 title: "Ajansa Peru SAC"
-output: html_notebook
+output:
+  pdf_document: default
+  html_notebook: default
+urlcolor: blue
 ---
 
 ```{r message=FALSE, warning=FALSE}
@@ -10,6 +13,9 @@ library(readxl)
 library(ggplot2)
 library(lubridate)
 library(googlesheets4)
+library(trackdown) # Trabajo colaborativo para rmkardowns
+library(pagedown) # Knitea a pdf el html de forma directa, no necesita latex
+library(DT)
 ```
 
 ## Introducción
@@ -81,6 +87,7 @@ sol_mar_tierra_importaciones %>%
   )) %>% 
   ggplot(aes(x = round_date(Fecha, unit = "year"), y= `Kg Neto`, fill = carga_grupo)) +
   geom_col()+
+  ggtitle("Evolución importaciones Sol, Mar y Tierra SRL \n Por KG neto")+
   labs(fill = "Tipo cargamento") +
   xlab("Año") 
 ```
@@ -93,6 +100,7 @@ sol_mar_tierra_importaciones %>%
   )) %>% 
   ggplot(aes(x = round_date(Fecha, unit = "year"), y = `U$ FOB Tot`, fill = carga_grupo)) +
   geom_col()+
+  ggtitle("Evolución importaciones Sol, Mar y Tierra SRL \n Por valor FOB US$")+
   labs(fill = "Tipo cargamento") +
   xlab("Año")
 ```
@@ -125,7 +133,7 @@ sol_mar_tierra_importaciones %>%
   summarise(
     valor_fob_us = sum(`U$ FOB Tot`,na.rm = T),
     kg_bruto = sum(`Kg Bruto`,na.rm = T)
-  )
+  ) 
 ```
 ```{r message=FALSE, warning=FALSE, include=FALSE}
 exportaciones_ajansa %>% 
@@ -143,4 +151,6 @@ sol_mar_tierra_importaciones %>%
 
 - [Dataset con exportaciones de Ajansa Perú SAC](https://docs.google.com/spreadsheets/d/1m3EeRzOjNo_297JW9OjTxivQFwQnVz8Q95Y_Pb0Xnfk/edit#gid=0)
 - [Dataset con importaciones de Sol Mar y Tierera SRL](https://docs.google.com/spreadsheets/d/15YSNdKG89k2hXKa8GbvXXSJnKAZwjbFVHwG0-v7EiQI/edit#gid=2057255506)
+
+
 
