@@ -1,14 +1,146 @@
 ---
-title: "explore"
+title: "Ajansa Peru SAC"
 output: html_notebook
 ---
 
-
-
-```{r}
+```{r message=FALSE, warning=FALSE}
+### Librerías a importar
 library(tidyverse)
 library(readxl)
 library(ggplot2)
+library(lubridate)
+library(googlesheets4)
 ```
 
+## Introducción
+
+Ajansa Perú SAC no figura en ningún reportaje de OjoPúblico sobre tráfico de aletas de tiburón, ni tampoco en otro medio que revele sus antecedentes. Sin embargo, fue la primera empresa condenada por dicho delito. 
+
+**Personas relacionadas a Ajansa Perú SAC según Sunat:**
+
+| Nombre | Cargo | Fecha de cargo |
+|  :---: |:----: | :----: |
+| Jorge Roldan Angulo Sanchez | Gerente General | 23/03/2018 | 
+
+ 
+**Personas mencionadas en la investigación fiscal:**
+
+| Nombre | Cargo |
+| :----: |:----: |
+| Jorge Roldan Angulo Sanchez | Subgerente |
+| Poly Dick Pinto Gonzales | No menciona |
+
+Respecto a su actividad comercial, Ajansa Perú SAC registró unicamente 4 exportaciones el 15 de diciembre de 2019. Enviaron un total de 3.6 toneladas de buche de pescado valorizado en 63 mil dólares a Hong Kong. Según Aduanas no realizaron importaciones.
+
+```{r include=FALSE}
+# Exportaron aletas de tiburón?
+# Evolución de cargamentos de Ajansa SAC ¿
+# Cuánto en KG/Toneladas y por cuánto valor US$ FOB? 
+# ¿A dónde fueron enviadas? ¿A qué empresa?
+# Durante qué años exportaron
+# ¿También importan productos?
+```
+
+```{r include=FALSE}
+# Importanda data descargada de Veritrade
+exportaciones_ajansa <-
+  read_xlsx(
+    "./data/ajansa_peru_Veritrade_NELLYLUNA10@GMAIL.COM_PE_E_20220209053141.xlsx",
+    skip = 4
+  )
+```
+
+```{r include=FALSE}
+exportaciones_ajansa %>% summarise(kg_bruto = sum(`Kg Bruto`))
+```
+```{r include=FALSE}
+exportaciones_ajansa %>% summarise(valor_fob_USS = sum(`U$ FOB Tot`))
+```
+
+En una [nota del diario La República](https://larepublica.pe/sociedad/2022/02/01/chimbote-dictan-4-anos-de-carcel-para-traficantes-de-aleta-de-tiburon-lrnd/) explican que los condenados Jorge Angulo y Poly Pinto
+eran los conductores de una unidad pesada que llevaban las aletas de tiburón, quienes se dirigían a Lima desde Tumbes y no portaban documentación durante la intervención en el 2018. Además mencionan que el cargamento fue procesado antes por otra empresa denominada Sol, Mar y Tierra SRL.
+
+```{r include=FALSE}
+sol_mar_tierra_importaciones <-
+  read_xlsx(
+    "./data/sol_mar_tierra_Veritrade_NELLYLUNA10@GMAIL.COM_PE_I_20220209060618.xlsx",
+    skip = 4)
+```
+
+
+Sol, Mar y Tierra SRL (RUC 20231233637) no registra envíos al extranjero, pero sí 
+figuran cargamentos importados solo desde Ecuador, país involucrado en el complejo 
+[esquema de tráfico de aletas de tiburón según OjoPúblico](https://ojo-publico.com/1056/companias-de-hong-kong-compran-aletas-de-tiburon-de-origen-sospechoso-en-peru)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+sol_mar_tierra_importaciones %>% 
+  mutate(carga_grupo = case_when(
+    str_detect(`Descripcion Comercial`,regex("aleta",ignore_case = T)) ~ "Aleta de tiburón",
+    str_detect(`Descripcion Comercial`,regex("buche",ignore_case = T)) ~ "Buche de pescado",
+    T ~ "otro"
+  )) %>% 
+  ggplot(aes(x = round_date(Fecha, unit = "year"), y= `Kg Neto`, fill = carga_grupo)) +
+  geom_col()+
+  labs(fill = "Tipo cargamento") +
+  xlab("Año") 
+```
+```{r echo=FALSE}
+sol_mar_tierra_importaciones %>% 
+  mutate(carga_grupo = case_when(
+    str_detect(`Descripcion Comercial`,regex("aleta",ignore_case = T)) ~ "Aleta de tiburón",
+    str_detect(`Descripcion Comercial`,regex("buche",ignore_case = T)) ~ "Buche de pescado",
+    T ~ "otro"
+  )) %>% 
+  ggplot(aes(x = round_date(Fecha, unit = "year"), y = `U$ FOB Tot`, fill = carga_grupo)) +
+  geom_col()+
+  labs(fill = "Tipo cargamento") +
+  xlab("Año")
+```
+```{r include=FALSE}
+sol_mar_tierra_importaciones %>% 
+  mutate(carga_grupo = case_when(
+    str_detect(`Descripcion Comercial`,regex("aleta",ignore_case = T)) ~ "Aleta de tiburón",
+    str_detect(`Descripcion Comercial`,regex("buche",ignore_case = T)) ~ "Buche de pescado",
+    T ~ "otro")) %>% 
+  filter(carga_grupo == 'Aleta de tiburón') %>% 
+  summarise(kg_bruto = sum(`Kg Bruto`))
+```
+```{r include=FALSE}
+sol_mar_tierra_importaciones %>% 
+  mutate(carga_grupo = case_when(
+    str_detect(`Descripcion Comercial`,regex("aleta",ignore_case = T)) ~ "Aleta de tiburón",
+    str_detect(`Descripcion Comercial`,regex("buche",ignore_case = T)) ~ "Buche de pescado",
+    T ~ "otro")) %>% 
+  filter(carga_grupo == 'Aleta de tiburón') %>% 
+  summarise(sum(us_fob = `U$ FOB Tot`))
+```
+
+Esta compañía fue creada en Tumbes y registra un total de 21.1 toneladas de aletas
+de tiburón importadas desde Ecuador (Puerto de Huaquillas) entre 2012 y 2016, por un valor FOB de 269 mil 
+dólares. Los datos no muestran a la empresa exportadora.
+
+```{r echo=FALSE}
+sol_mar_tierra_importaciones %>% 
+  group_by(año = round_date(Fecha, unit = "year")) %>% 
+  summarise(
+    valor_fob_us = sum(`U$ FOB Tot`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T)
+  )
+```
+```{r message=FALSE, warning=FALSE, include=FALSE}
+exportaciones_ajansa %>% 
+  write_sheet(
+    "https://docs.google.com/spreadsheets/d/1m3EeRzOjNo_297JW9OjTxivQFwQnVz8Q95Y_Pb0Xnfk/edit#gid=0",
+    sheet = "data"
+  )
+
+sol_mar_tierra_importaciones %>% 
+  write_sheet(
+    "https://docs.google.com/spreadsheets/d/15YSNdKG89k2hXKa8GbvXXSJnKAZwjbFVHwG0-v7EiQI/edit#gid=0",
+    sheet = "data"
+  )
+```
+
+- [Dataset con exportaciones de Ajansa Perú SAC](https://docs.google.com/spreadsheets/d/1m3EeRzOjNo_297JW9OjTxivQFwQnVz8Q95Y_Pb0Xnfk/edit#gid=0)
+- [Dataset con importaciones de Sol Mar y Tierera SRL](https://docs.google.com/spreadsheets/d/15YSNdKG89k2hXKa8GbvXXSJnKAZwjbFVHwG0-v7EiQI/edit#gid=2057255506)
 
