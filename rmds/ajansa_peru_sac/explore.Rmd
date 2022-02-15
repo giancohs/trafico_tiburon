@@ -66,6 +66,8 @@ exportaciones_ajansa %>% summarise(valor_fob_USS = sum(`U$ FOB Tot`))
 En una [nota del diario La República](https://larepublica.pe/sociedad/2022/02/01/chimbote-dictan-4-anos-de-carcel-para-traficantes-de-aleta-de-tiburon-lrnd/) explican que los condenados Jorge Angulo y Poly Pinto
 eran los conductores de una unidad pesada que llevaban las aletas de tiburón, quienes se dirigían a Lima desde Tumbes y no portaban documentación durante la intervención en el 2018. Además mencionan que el cargamento fue procesado antes por otra empresa denominada Sol, Mar y Tierra SRL.
 
+OjoPúblico también reveló que Poly Dick Pinto es padre de Brian Pinto Panduro, uno de los dueños de Angaff Perú, empresa que ha enviado aletas de tiburón a China en el 2018. 
+
 ```{r include=FALSE}
 sol_mar_tierra_importaciones <-
   read_xlsx(

@@ -1,0 +1,33 @@
+---
+title: "Aletas de tiburón, mercado dominado por empresas con antecedentes de tráfico"
+output:
+  pdf_document: default
+  html_notebook: default
+urlcolor: blue
+---
+
+```{r}
+## Importando data
+```
+
+
+Masomenos irá por este ángulo:
+
+El 60% de las aletas de tiburón exportadas al extranjero desde Perú (2012-2021), fueron realizadas por 10 empresas que tienen antecedentes de cargamentos de origen sospechoso y fueron intervenidas por Aduanas de la Superintendencia Nacional de Administración Tributaria (Sunat). 
+
+A pesar que varias especies de tiburón estan consideradas como amenazadas por su explotacion indiscriminada, tres exportadoras de este grupo de empresas con antecedentes han multiplicado entre dos a seis veces sus envíos y ganancias en los últimos tres años, incluso después de un megaoperativo que confiscó parte de su cargamento por origen sospechoso en el 2018.
+
+La primera, Lamarqocha inversiones, ha exportado un total de 555 toneladas de aletas de tiburón valorizadas en USD 20 millones desde que inició actividad en el 2016. En diciembre de 2018 Aduanas de la Sunat sindicó a esta empresa como una de las dueñas de cargamentos de origen sospechoso, además de comercializar especies incluidas en la lista roja de Unión Internacional para la Conservación de la Naturaleza (UICN). Esta empresa casi ha duplicado el volumen de sus envíos con principal destino a Hong Kong, pasó de 73 toneladas (USD 4.3 millones) en el 2019 a 128 toneladas (USD 6.2 millones) al cierre del 2021.
+
+También destaca Angaff Perú, otra de las compañías intervenidas por Aduanas en el 2018. Datos de de esta misma entidad muestran que dicha empresa, creada en el 2013 en Lima, cuadriplicó sus exportaciones de aletas de tiburón el 2021 si se compara con cifras del 2019: de 21 toneladas valorizadas en USD 1 millón a 91 toneladas (USD 4.5 millones). Uno de los dueños de esta empresa, Brian Pinto Panduro, es hijo del primer condenado por tráfico de aletas de tiburón Poly Dick Pinto Gonzales. 
+
+Otra empresa que ha multiplicado sus envíos fue Exportacioens JME. En el 2019 comercializó 8.9 toneladas (USD 426 mil) de aletas de tiburón hacia Hong Kong. Tres años después ha logrado multiplicar doce veces esta cifra: 113 toneladas (USD 4.3 millones)
+
+Otros datos para ir sumando: 
+
+A la fecha, Aduanas de Sunat ha realizado xx intervenciones a cargamentos de aletas de tiburón por origen sospechosos. Lo que ha resultado en un total de 10 empresas exportadoras involucradas en estos casos.
+
+Las 10 empresas con antecedentes han exportado un total de 2700 toneladas de aletas de tiburón en los últimos diez años (2012-2021), valorizados en USD 53 millones, lo que representa el 60% de todo lo exportado en el mismo periodo. 
+
+Entre estas 10 empresas, y todas las exportadoras de tiburón destacan tres empresas: Lamarqocha inversiones, Angaff Perú y exportaciones JME. Estas compañías muestran un gran crecimiento en sus exportaciones, a diferencia del resto de empresas en el mismo rubro. 
+

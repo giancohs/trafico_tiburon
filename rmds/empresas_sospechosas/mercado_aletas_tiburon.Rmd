@@ -1,0 +1,265 @@
+---
+title: "El mercado de aletas de tiburón en el Perú"
+output:
+  pdf_document: default
+  html_notebook: default
+urlcolor: blue
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+### Librerías a importar
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(lubridate)
+library(googlesheets4)
+```
+
+## Introducción
+
+El opaco negocio de las aletas de tiburón
+
+Mercado de aletas de tiburón:
+ - Complejo
+ - Sin protección ni fiscalización suficiente
+ - AUtoridades extranjeras ya han condenado esta práctica por poner en peligro la biodiversidad marina
+ - Los principales paises involucrados son Perú y Ecuador en Latinoamérica
+ - Varias empresas y personas involucradas con antecedentes por prácticas ilegales
+ - Red de empresas vinculadas entre sí que concentran mercado
+ - Produce entrega certificados CITES sin verificar antecedentes, solo revisan documentos del cargamento para establecer la procedencia "legal", pero varias empresas y/o personas con estos certificados otorgados por la entidad fueron detenidos precisamente por pesca ilegal o sospechosa (sistema no funciona?)
+
+Según aduanas de Sunat estas son las partidas arancelarias relacionadas a aletas de tiburon:
+
+- 0303.92.00.00
+- 0305.71.00.00
+
+Lista de empresas con antecedentes, luego de fiscalizaciones de Sunat:
+
+- Angaff SAC
+- Huiman
+- Lamarqocha
+- Inversiones Perú Flipper
+- Marea Blue EIRL
+
+```{r}
+#Importando antecedentes
+antecedentes <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1tzdHlGbvGm7MQptW27DAtQ1o-dFt_7Sr7CrHUFCAxxU/edit#gid=0",
+  sheet = "empresas"
+)
+```
+
+
+## Análisis
+
+### Ranking exportadoras 2012-2021 - Veritrade
+```{r}
+#Importando data
+exportaciones_aletas_tiburon_vetridate <- 
+  read_xlsx(
+  "./data/aleta_tiburon/exportaciones_aletas_tiburon_20220214_Veritrade_NELLYLUNA10@GMAIL.COM_PE_E_20220214102446.xlsx",
+  skip = 5) %>% 
+  mutate(
+    Fecha = ymd(Fecha),
+    año = str_sub(Fecha, 1,4)
+  ) %>% 
+  filter(!año == '2022')
+```
+
+```{r}
+# Ranking exportadoras aletas de tiburon veritrade
+ranking_exportadoras <- exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(Exportador,`Cod. Tributario`) %>% 
+  summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T),
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  ) %>% 
+  arrange(desc(per_fob_uss)) %>% 
+  left_join(antecedentes %>% 
+              select(`Cod. Tributario`= RUC) %>% 
+              mutate(
+                tiene_antecedente = 'sí'
+              ))
+
+ranking_exportadoras
+```
+
+### Ranking exportadoras 2012-2021 - Panjiva
+
+```{r}
+#Importando datos
+exportaciones_aletas_tiburon_panjiva <- 
+  read_xlsx(
+  "./data/aleta_tiburon/exportaciones_aletas_tiburon_Panjiva-Peru_Exports-0305_71-results_1_to_1753_of_1753-2022-02-14-13-45.xlsx"
+) %>% 
+  mutate(
+    fecha_envio = ymd(`Shipment Date`),
+    año = str_sub(`Shipment Date`,1,4)
+  ) %>% 
+  filter(!año == '2022',
+         !año == '2011')
+  
+```
+
+```{r}
+# Ranking
+ranking_exportadores_panjiva <- exportaciones_aletas_tiburon_panjiva %>% 
+  group_by(Expedidor, `Shipper Document Number`) %>% 
+  summarise(
+    kg_neto = sum(`Net Weight (kg)`,na.rm = T),
+    kg_bruto = sum(`Gross Weight (kg)`,na.rm = T),
+    fob_uss = sum(`Value of Goods, FOB (USD)`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  ) %>% 
+  arrange(desc(per_fob_uss)) %>% 
+  left_join(antecedentes %>% 
+              select(`Shipper Document Number`= RUC) %>% 
+              mutate(
+                tiene_antecedente = 'sí'
+              ))
+
+ranking_exportadores_panjiva
+```
+
+### ¿Qué porcentaje representa empresas con antecedentes en las exportaciones de aletas de tiburón de los últimos 10 años?
+
+```{r}
+exportaciones_aletas_tiburon_vetridate %>% 
+  summarise(
+    total_kg_bruto = sum(`Kg Bruto`),
+    total_kg_neto = sum(`Kg Neto`),
+    total_fob = sum(`U$ FOB Tot`)
+  ) %>% 
+  mutate(
+    grupo='total'
+  ) %>% 
+  full_join(
+    ranking_exportadoras %>% 
+      filter(tiene_antecedente == 'sí') %>% 
+      summarise(
+        total_kg_bruto = sum(kg_bruto),
+        total_kg_neto = sum(kg_neto),
+        total_fob = sum(fob_uss)
+      ) %>% 
+      select(total_kg_bruto,
+             total_kg_neto,
+             total_fob) %>% 
+      mutate(grupo = 'empresas con antecedentes')
+  )
+```
+
+```{r}
+53340073*100/87726374
+```
+El 60% de todas las exportaciones de aletas de tiburón, de los últimos 10 años, tuviern como expedidor a empresas intervenidas por aduanas de sonat por enviar cargas de origen sospechoso y con antecedentes de tráfico.
+
+### Exportacioens de las empresas con antecedentes
+
+```{r}
+ranking_exportadoras_antecedentes <- ranking_exportadoras %>% 
+  filter(tiene_antecedente == 'sí')
+ranking_exportadoras_antecedentes
+```
+### ¿Cómo evolucionó las exportaciones de estas 10 empresas?
+
+```{r}
+#Preparando data
+lista_empresas_antecedentes <- ranking_exportadoras_antecedentes$`Cod. Tributario`
+evolucion_empresas_antecedentes <- exportaciones_aletas_tiburon_vetridate %>% 
+  filter(`Cod. Tributario` %in% lista_empresas_antecedentes) %>% 
+  group_by(Exportador,`Cod. Tributario`,año) %>% 
+  summarise(
+    valor_fob = sum(`U$ FOB Tot`,na.rm = T),
+    neto_kg = sum(`Kg Neto`,na.rm = T)
+  )
+evolucion_empresas_antecedentes 
+```
+```{r}
+#Ploteando data | por valor FOB
+plot_evolucion_empresas_antecedentes <- evolucion_empresas_antecedentes %>% 
+  ggplot(
+    aes(x=año,y=valor_fob, group = Exportador, color = str_wrap(Exportador, 20))
+  )+
+  geom_line(size = 1)+
+  theme(legend.position = "right")+
+  labs(color="Empresas con\nantecedentes") +
+  guides(fill=guide_legend(nrow=15, byrow=TRUE))
+
+plot_evolucion_empresas_antecedentes
+```
+```{r}
+#Ploteando data | por valor FOB
+plot_evolucion_empresas_antecedentes <- evolucion_empresas_antecedentes %>% 
+  ggplot(
+    aes(x=año,y=neto_kg, group = Exportador, color = str_wrap(Exportador, 20))
+  )+
+  geom_line(size = 1)+
+  theme(legend.position = "right")+
+  labs(color="Empresas con\nantecedentes") +
+  guides(fill=guide_legend(nrow=15, byrow=TRUE))+
+  
+
+plot_evolucion_empresas_antecedentes
+```
+
+### ¿Cómo evoluciono las top 5 de cada año? 
+
+```{r}
+# Ranking top 5 cada año exportadoras aletas de tiburon
+ranking_exportadoras_top_5 <- exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(Exportador,`Cod. Tributario`, año) %>% 
+  summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T),
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  ) %>% 
+  arrange(desc(per_fob_uss)) %>% 
+  left_join(antecedentes %>% 
+              select(`Cod. Tributario`= RUC) %>% 
+              mutate(
+                tiene_antecedente = 'sí'
+              )) %>% 
+  group_by(Exportador,`Cod. Tributario`, año) %>% 
+  slice_max(order_by = fob_uss, n = 5)
+
+ranking_exportadoras_top_5
+```
+
+```{r}
+#Ploteando data
+plot_ranking_exportadoras_top_5 <- ranking_exportadoras_top_5 %>% 
+  ggplot(
+    aes(x=año,y=fob_uss, group = Exportador, color = str_wrap(Exportador, 20))
+  )+
+  geom_line(size = 0.7)+
+  theme(legend.position = "none")+
+  labs(color="Empresas con\nantecedentes") +
+  guides(fill=guide_legend(nrow=15, byrow=TRUE))
+
+plot_ranking_exportadoras_top_5
+```
+### Principales destinos
+```{r}
+exportaciones_aletas_tiburon_vetridate %>% 
+  filter(`Pais de Destino` == 'HONG KONG') %>% 
+  summarise(
+    peso_neto_kg = sum(`Kg Neto`,na.rm = T),
+    valor_fob = sum(`U$ FOB Tot`,na.rm = T)
+  )
+```
+
