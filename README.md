@@ -1,5 +1,9 @@
 # Tráfico tiburón
 
+## Log 14/02/22 - Primer avance nota aletas de tiburón
+
+Luego de revisar y analizar exportaciones de aletas de tiburón en el Perú, se procedió a elaborar nota informativa
+
 ## Log 10/02/22 - Ranking exportaciones aletas de tiburón
 
 Exploración y análisis del mercado de aletas de tiburón. Se muestra las principales empresas exportadoras, si tienen antecedentes por tráfico de esta especie, vínculos entre ellas, entre otros. También la evolución en este tipo de actividad, variación de carga o precio, principales destinos y otros. ([Ver documento])
