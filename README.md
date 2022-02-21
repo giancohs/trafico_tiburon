@@ -1,12 +1,16 @@
 # Tráfico tiburón
 
+## Log 21/02/22 - Publicación reportaje y versión final análisis
+
+Se publicó el reportaje en base al análisis de las exportaciones de aletas de tiburón de Perú y Ecuador (2012-2021). Se puede leer [aquí](https://ojo-publico.com/3325/record-historico-de-exportacion-de-aletas-de-tiburon), y revisar la versión final del [documento](/rmds/empresas_sospechosas/mercado_aletas_tiburon.Rmd)
+
 ## Log 14/02/22 - Primer avance nota aletas de tiburón
 
 Luego de revisar y analizar exportaciones de aletas de tiburón en el Perú, se procedió a elaborar nota informativa
 
 ## Log 10/02/22 - Ranking exportaciones aletas de tiburón
 
-Exploración y análisis del mercado de aletas de tiburón. Se muestra las principales empresas exportadoras, si tienen antecedentes por tráfico de esta especie, vínculos entre ellas, entre otros. También la evolución en este tipo de actividad, variación de carga o precio, principales destinos y otros. ([Ver documento])
+Exploración y análisis del mercado de aletas de tiburón. Se muestra las principales empresas exportadoras, si tienen antecedentes por tráfico de esta especie, vínculos entre ellas, entre otros. También la evolución en este tipo de actividad, variación de carga o precio, principales destinos y otros. ([Ver documento](/rmds/empresas_sospechosas/mercado_aletas_tiburon.Rmd))
 
 
 ## Log 10/02/22 - Ajansa Perú SAC
