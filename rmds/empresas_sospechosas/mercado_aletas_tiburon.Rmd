@@ -170,6 +170,38 @@ ranking_exportadoras_antecedentes <- ranking_exportadoras %>%
   filter(tiene_antecedente == 'sí')
 ranking_exportadoras_antecedentes
 ```
+```{r}
+ranking_exportadoras_antecedentes_dw <-  exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(Exportador,`Cod. Tributario`,año) %>% 
+  summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  arrange(desc(kg_neto)) %>% 
+  left_join(antecedentes %>% 
+              select(`Cod. Tributario`= RUC, descripcion) %>% 
+              mutate(
+                tiene_antecedente = 'sí'
+              )) %>% 
+  filter(tiene_antecedente == 'sí') %>% 
+  pivot_wider(names_from = "año", values_from = "kg_neto") %>% 
+  left_join()
+
+ranking_exportadoras_antecedentes_dw %>% 
+  write_sheet(
+    "https://docs.google.com/spreadsheets/d/1wXQbd7AEjYLugWL-RhRNj6qhMCuNTOoFhaDCH8b22vk/edit#gid=0",
+    sheet = "ranking_evolucion_exportaciones"
+  )
+```
+#### Exportaciones destinos top 3 empresas con entecedentes
+
+```{r}
+exportaciones_aletas_tiburon_vetridate %>% 
+  filter(`Cod. Tributario` %in% c('20600976347','20553270171','20562851721')) %>% 
+  count(`Pais de Destino`)
+```
+
+
 ### ¿Cómo evolucionó las exportaciones de estas 10 empresas?
 
 ```{r}
@@ -211,6 +243,35 @@ plot_evolucion_empresas_antecedentes <- evolucion_empresas_antecedentes %>%
 
 plot_evolucion_empresas_antecedentes
 ```
+### Evolución general aletas tiburon Perú - PEsto neto KG
+
+```{r}
+exportaciones_aletas_tiburon_vetridate %>% 
+  ggplot(aes(x=año, y = `Kg Neto`))+
+  geom_col()
+```
+```{r}
+exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(año) %>% 
+  summarise(
+    valor_fob = sum(`U$ FOB Tot`,na.rm = T)
+  )
+```
+
+
+
+```{r}
+#Enviado a Datawrapper
+exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(año) %>% 
+  summarise(
+    valor_fob = sum(`U$ FOB Tot`),
+    peso_neto_kg= sum(`Kg Neto`)
+  ) %>% 
+  write_sheet(
+    "https://docs.google.com/spreadsheets/d/1wXQbd7AEjYLugWL-RhRNj6qhMCuNTOoFhaDCH8b22vk/edit#gid=1902148186",
+    sheet = "evolucion_exportaciones_aletas")
+```
 
 ### ¿Cómo evoluciono las top 5 de cada año? 
 
@@ -239,6 +300,24 @@ ranking_exportadoras_top_5 <- exportaciones_aletas_tiburon_vetridate %>%
 
 ranking_exportadoras_top_5
 ```
+```{r}
+## Psando evolucion  todas empresas a datawrapper
+
+evolucion_exportadoras_dw <- exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(Exportador, año = round_date(Fecha, unit = "year")) %>% 
+  summarise(
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  arrange(desc(fob_uss)) %>% 
+  group_by(año) %>% 
+  pivot_wider(names_from = Exportador, values_from = fob_uss)
+
+evolucion_exportadoras_dw %>% 
+  write_sheet(
+    "https://docs.google.com/spreadsheets/d/1wXQbd7AEjYLugWL-RhRNj6qhMCuNTOoFhaDCH8b22vk/edit#gid=33755098",
+    sheet = "principales_exportadoras")
+```
 
 ```{r}
 #Ploteando data
@@ -261,5 +340,252 @@ exportaciones_aletas_tiburon_vetridate %>%
     peso_neto_kg = sum(`Kg Neto`,na.rm = T),
     valor_fob = sum(`U$ FOB Tot`,na.rm = T)
   )
+```
+```{r}
+#Concentración por año.
+exportaciones_aletas_tiburon_vetridate %>% 
+  
+```
+
+
+
+### Nube de palabras de descripcioens comerciales da las exportaciones de aletas
+de tiburón
+
+```{r}
+library(tidytext)
+library(tm)
+
+#Ref: https://www.codementor.io/@alexander-k/r-word-frequency-in-dataframe-165jgfxxqe
+
+```
+
+### Ranking con especies de tiburones de los que extrajeron aletas
+```{r}
+#Importando data de especies
+especies <- read_sheet(
+  "https://docs.google.com/spreadsheets/d/1cuWFl0R2bAi7VDBwKioxXmpO8lWGwSwYzS3IsoE__fE/edit#gid=0") %>% 
+  select(especimen)
+```
+```{r}
+# Agregando variable de especie al dataset
+exportaciones_aletas_tiburon_veritrade <- exportaciones_aletas_tiburon_vetridate %>% 
+  mutate(
+    especie = case_when(
+      str_detect(`Descripcion Comercial`,regex("martillo",ignore_case = T)) ~ "Tiburón martillo",
+      str_detect(`Descripcion Comercial`,regex("ballena",ignore_case = T)) ~ "Tiburón ballena",
+      str_detect(`Descripcion Comercial`,regex("peje gallo",ignore_case = T)) ~ "Peje Gallo",
+      str_detect(`Descripcion Comercial`,regex("angelote",ignore_case = T)) ~ "Angelote",
+      str_detect(`Descripcion Comercial`,regex("gato",ignore_case = T)) ~ "Tiburón gato",
+      str_detect(`Descripcion Comercial`,regex("manchado",ignore_case = T)) ~ "Tiburón manchado",
+      str_detect(`Descripcion Comercial`,regex("tollo|toyo",ignore_case = T)) ~ "Tollo",
+      str_detect(`Descripcion Comercial`,regex("martillo",ignore_case = T)) ~ "Tiburón martillo",
+      str_detect(`Descripcion Comercial`,regex("negro",ignore_case = T)) ~ "Tiburón negro",
+      str_detect(`Descripcion Comercial`,regex("siete agallas",ignore_case = T)) ~ "Siete agallas",
+      str_detect(`Descripcion Comercial`,regex("tigre",ignore_case = T)) ~ "Tiburón tigre",
+      str_detect(`Descripcion Comercial`,regex("mantequero",ignore_case = T)) ~ "Tiburón mantequero",
+      str_detect(`Descripcion Comercial`,regex("baboso",ignore_case = T)) ~ "Tiburón baboso",
+      str_detect(`Descripcion Comercial`,regex("caz.n",ignore_case = T)) ~ "Tiburón cazón",
+      str_detect(`Descripcion Comercial`,regex("punta+negra",ignore_case = T)) ~ "Tiburón puntas negras",
+      str_detect(`Descripcion Comercial`,regex("cuero+duro",ignore_case = T)) ~ "Tiburón cuero duro",
+      str_detect(`Descripcion Comercial`,regex("hocic.n",ignore_case = T)) ~ "Tiburón hocicón",
+      str_detect(`Descripcion Comercial`,regex("bonete",ignore_case = T)) ~ "Tiburón bonete",
+      str_detect(`Descripcion Comercial`,regex("azul",ignore_case = T)) ~ "Tiburón azul",
+      str_detect(`Descripcion Comercial`,regex("zorro",ignore_case = T)) ~ "Tiburón zorro",
+      str_detect(`Descripcion Comercial`,regex("diamante|mako",ignore_case = T)) ~ "Tiburón diamante",
+      str_detect(`Descripcion Comercial`,regex("sardinero",ignore_case = T)) ~ "Tiburón sardinero",
+      str_detect(`Descripcion Comercial`,regex("papelillo",ignore_case = T)) ~ "Tiburón papelillo",
+      T ~ "Otras especies"
+    )
+  )
+```
+
+```{r}
+exportaciones_aletas_tiburon_veritrade %>% 
+  group_by(especie) %>% 
+  summarise(
+    peso_neto_kg = sum(`Kg Neto`,na.rm = T),
+    valor_fob = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  arrange(desc(peso_neto_kg))
+```
+
+## Importaciones aletas tiburón Perú
+
+```{r}
+importaciones_aletas_tiburon_veritrade <- read_xlsx(
+  "./data/aleta_tiburon/importaciones_aletas_tiburon_20220214_Veritrade_NELLYLUNA10@GMAIL.COM_PE_I_20220214102617.xlsx",
+  skip = 5) %>% 
+  mutate(
+    Fecha = ymd(Fecha),
+    año = str_sub(Fecha, 1,4)
+  ) %>% 
+  filter(!año == '2022')
+```
+
+### Principales paises origen de aletas de pescado de Perú
+```{r}
+ranking_paises_importaciones <- importaciones_aletas_tiburon_veritrade %>% 
+  group_by(`Pais de Origen`) %>% 
+  summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T),
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  )
+
+ranking_paises_importaciones
+```
+### Evolución importaciones aletas de pescado Perú
+```{r}
+## Data
+evolucion_importaciones_aletas_peru_ecuador <- importaciones_aletas_tiburon_veritrade %>% 
+  filter(`Pais de Origen` == 'ECUADOR') %>% 
+  group_by(año) %>% 
+    summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T),
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  )
+
+```
+
+```{r}
+## Ploteando improtaciones aletas kg neto
+evolucion_importaciones_aletas_peru_ecuador %>% 
+  ggplot(
+    aes(x=año, y=kg_neto)
+  )+
+  geom_col()
+```
+```{r}
+exportaciones_aletas_tiburon_veritrade_ecuador %>% 
+  group_by(año) %>% 
+  summarise(
+    valor_fob = sum(`U$ FOB Tot`,na.rm = T)
+  )
+```
+```{r}
+
+```
+
+## Exportaciones aletas tiburón de Ecuador a otros países
+
+En veritrade se pudo encontrar exportaciones de la partida aduanera perteneciente a aletas de tiburón, sin embargo, hay otra categoria denominado "ecuador manifiestos" que no permite buscar por esta categoría.
+
+En panjiva solo tiene registros del 2014 al 2016, tampoco se puede buscar por partida arancelaria.
+
+```{r}
+exportaciones_aletas_tiburon_veritrade_ecuador <- read_xlsx(
+  "./data/aleta_tiburon/exportaciones_aletas_tiburon_20220216_ecuador_Veritrade_NELLYLUNA10@GMAIL.COM_EC_E_20220216005121.xlsx",
+  skip = 5) %>% 
+  mutate(
+    Fecha = ymd(Fecha),
+    año = str_sub(Fecha, 1,4)
+  ) %>% 
+  filter(!año == '2022')
+  
+```
+
+### Evolución exportaciones aletas de  tiburón de Ecuador por año 
+```{r}
+evolucion_exportaciones_aletas_peru_ecuador <- exportaciones_aletas_tiburon_veritrade_ecuador %>%
+  group_by(año) %>% 
+    summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T),
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  )
+```
+
+```{r}
+# Ploteando
+evolucion_exportaciones_aletas_peru_ecuador %>% 
+  ggplot(
+    aes(x=año,y=kg_neto)
+  )+
+  geom_col()
+```
+### Principales destinos de los envíos de aletas de tiburón de ecuador
+
+```{r}
+ranking_paises_exportaciones_ecuador <- exportaciones_aletas_tiburon_veritrade_ecuador %>% 
+  group_by(`Pais de Destino`) %>% 
+  summarise(
+    kg_neto = sum(`Kg Neto`,na.rm = T),
+    kg_bruto = sum(`Kg Bruto`,na.rm = T),
+    fob_uss = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    per_kg_neto = kg_neto*100/sum(kg_neto,na.rm = T),
+    per_fob_uss = fob_uss*100/sum(fob_uss,na.rm = T)
+  ) %>% 
+  arrange(desc(per_kg_neto))
+
+ranking_paises_exportaciones_ecuador
+```
+
+### Principales destinos exportaciones Ecuador, por año y valor FOB
+```{r}
+exportaciones_aletas_tiburon_veritrade_ecuador %>% 
+  group_by(año, `Pais de Destino`) %>% 
+  summarise(
+    valor_fob = sum(`U$ FOB Tot`,na.rm = T)
+  ) %>% 
+  pivot_wider(names_from = `Pais de Destino`, values_from = valor_fob) %>% 
+  write_sheet(
+    "https://docs.google.com/spreadsheets/d/1wXQbd7AEjYLugWL-RhRNj6qhMCuNTOoFhaDCH8b22vk/edit#gid=1902148186",
+    sheet = "principales_destinos_ecuador_año")
+```
+
+## ¿Coincide los envíos de Ecuador con las improtaciones de Perú?
+```{r}
+a <- importaciones_aletas_tiburon_veritrade %>% 
+  filter(`Pais de Origen` == 'ECUADOR') %>% 
+  group_by(año) %>% 
+  summarise(
+    kg_neto_importaciones_peru = sum(`Kg Neto`,na.rm = T))
+
+b <- exportaciones_aletas_tiburon_veritrade_ecuador %>% 
+  filter(`Pais de Destino` == 'PERÚ') %>% 
+  group_by(año) %>% 
+  summarise(
+    kg_neto_exportaciones_ecuador = sum(`Kg Neto`,na.rm = T))
+
+a %>% 
+  left_join(b)
+```
+
+```{r}
+
+a <- exportaciones_aletas_tiburon_vetridate %>% 
+  group_by(año) %>% 
+  summarise(
+    kg_neto_exportaciones_peru = sum(`Kg Neto`,na.rm = T))
+
+b <- exportaciones_aletas_tiburon_veritrade_ecuador %>% 
+  filter(`Pais de Destino` == 'PERÚ') %>% 
+  group_by(año) %>% 
+  summarise(
+    kg_neto_exportaciones_ecuador = sum(`Kg Neto`,na.rm = T))
+
+a %>% 
+  left_join(b)
+
 ```
 
